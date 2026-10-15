@@ -1,0 +1,98 @@
+#include <stdio.h>
+#include <math.h>
+
+#define MAX 10
+
+// Función para imprimir la matriz aumentada de forma visual
+void imprimirMatriz(float matriz[MAX][MAX + 1], int n) {
+    for (int i = 0; i < n; i++) {
+        printf("| ");
+        for (int j = 0; j <= n; j++) {
+            if (j == n) printf("| "); // Línea divisoria de la matriz aumentada
+            printf("%8.2f ", matriz[i][j]);
+        }
+        printf("|\n");
+    }
+    printf("\n");
+}
+
+int main() {
+    int n = 3; // Número de variables/ecuaciones
+
+    // Matriz aumentada inicial de ejemplo (A | b)
+    float matriz[MAX][MAX + 1] = {
+        { 2.0,  1.0, -1.0,  8.0},
+        {-3.0, -1.0,  2.0, -11.0},
+        {-2.0,  1.0,  2.0, -3.0}
+    };
+
+    printf("=== 1. MATRIZ INICIAL ===\n");
+    imprimirMatriz(matriz, n);
+
+    int i, j, k, maxRow;
+    float factor, temp;
+    float x[MAX];
+
+    // --- 2. FASE DE ELIMINACIÓN HACIA ADELANTE CON PIVOTEO ---
+    for (i = 0; i < n; i++) {
+        // Pivoteo parcial: buscar el valor absoluto más grande en la columna
+        maxRow = i;
+        for (k = i + 1; k < n; k++) {
+            if (fabs(matriz[k][i]) > fabs(matriz[maxRow][i])) {
+                maxRow = k;
+            }
+        }
+
+        // Intercambiar filas si el pivote cambió de posición
+        if (maxRow != i) {
+            for (j = 0; j <= n; j++) {
+                temp = matriz[i][j];
+                matriz[i][j] = matriz[maxRow][j];
+                matriz[maxRow][j] = temp;
+            }
+        }
+
+        // Validar si la matriz es singular
+        if (fabs(matriz[i][i]) < 1e-9) {
+            printf("Error: El sistema no tiene solucion unica.\n");
+            return 1;
+        }
+
+        // Hacer ceros abajo (Eliminación hacia adelante)
+        for (k = i + 1; k < n; k++) {
+            factor = matriz[k][i] / matriz[i][i];
+            for (j = i; j <= n; j++) {
+                matriz[k][j] -= factor * matriz[i][j];
+            }
+        }
+    }
+
+    printf("=== 2. MATRIZ RESULTANTE (Triangular Superior) ===\n");
+    imprimirMatriz(matriz, n);
+
+    // --- 3. SUSTITUCIÓN HACIA ATRÁS ---
+    for (i = n - 1; i >= 0; i--) {
+        x[i] = matriz[i][n];
+        for (j = i + 1; j < n; j++) {
+            x[i] -= matriz[i][j] * x[j];
+        }
+        x[i] = x[i] / matriz[i][i];
+    }
+
+    // --- 4. MOSTRAR RESULTADOS FINALES ---
+    printf("=== 3. RESULTADOS ===\n");
+    for (i = 0; i < n; i++) {
+        printf("x%d = %.4f\n", i + 1, x[i]);
+    }
+    // --- 5. CONCLUSION ---
+    printf("\n=== 4. CONCLUSION ===\n");
+    printf("Los valores calculados para las incognitas son:\n");
+    printf("x1 = %.4f\n", x[0]);
+    printf("x2 = %.4f\n", x[1]);
+    printf("x3 = %.4f\n", x[2]);
+    printf("Si las incognitas representan fuerzas en kN, estos valores estan en kN.\n");
+    printf("Para evaluar un diseno, compara las fuerzas calculadas con los limites\n");
+    printf("del material. Este programa por si solo no garantiza que el diseno sea seguro.\n");
+
+    return 0;
+}
